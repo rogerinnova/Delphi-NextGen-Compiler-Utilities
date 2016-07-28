@@ -106,7 +106,7 @@ Type
     // Returns a pointer to the last full character in the AnsiStringBase.
     Property Length: Integer Read GetLength write SetStrLength;
     Property ASString: String read UnCompressedToUnicode
-      write CompressedUnicode;
+      write CompressedUnicode;//Useful for seeing value in Debug
     Property Data[a: Integer]: AnsiChar Read GetData Write SetData; Default;
   end;
 
