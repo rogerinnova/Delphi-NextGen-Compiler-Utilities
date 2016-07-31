@@ -221,11 +221,15 @@ end;
 
 Procedure UniqueString(Var AStg: AnsiString);
 Var
-  OldCopy: AnsiString;
+  OldCopy,NewCopy: AnsiString;
+  Len:Integer;
 begin
   OldCopy := AStg;
-  AStg := '';
-  AStg.CopyBytesFromMemory(Pointer(OldCopy), OldCopy.Length);
+  NewCopy := '';
+  Len := OldCopy.Length;
+  if Len>0 then
+     NewCopy.CopyBytesFromMemory(Pointer(OldCopy),Len);
+  AStg:=NewCopy;
 end;
 
 Function StrScan(const Str: PAnsiChar; Chr: Byte): PAnsiChar;
@@ -668,6 +672,8 @@ end;
 function AnsiString.GetLength: Integer;
 begin
   Result := System.Length(FData) - 1;
+  if Result<0 then
+    Result:=0;
 end;
 
 class operator AnsiString.GreaterThan(a, b: AnsiString): Boolean;
