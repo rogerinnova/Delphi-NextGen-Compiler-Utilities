@@ -5,7 +5,6 @@ interface
 Uses System.SysUtils, System.UITypes, System.Classes, System.strutils;
 
 {$IFNDEF NextGen}
-
 // must be an error
 Type
   MyError = class;
@@ -16,15 +15,15 @@ Const
   // http://docwiki.embarcadero.com/RADStudio/Seattle/en/Operator_Overloading_%28Delphi%29
 
 Type
-  StrCodeInfoRec = record
+  StrCodeInfoRec = record 
     CodePage: Word; // 2
-    ElementLength: Word; // 2
+    ElementLength:
+    Word; // 2
     RefCount: Integer; // 4
     Length: Integer; // 4
   end;
 
   PStrCodeInfoRec = ^StrCodeInfoRec;
-
 
   TISBytesArray = Array of Byte;
 
@@ -34,6 +33,7 @@ Type
   private
     FData: Byte;
     FPtr: Pointer;
+    function GetLength: integer; inline;
   Public
     class operator Add(a, b: AnsiChar): String;
     class operator Implicit(a: Byte): AnsiChar;
@@ -44,15 +44,18 @@ Type
     class operator Equal(a, b: AnsiChar): Boolean;
     class operator Equal(a: Byte; b: AnsiChar): Boolean;
     class operator Equal(a: AnsiChar; b: Byte): Boolean;
+    class operator Equal(a: Char; b: AnsiChar): Boolean;
+    class operator Equal(a: AnsiChar; b: Char): Boolean;
     class operator NotEqual(a, b: AnsiChar): Boolean;
+    Property Length: integer Read GetLength;
   end;
 
   AnsiString = Record
   private
     FData: TISBytesArray;
-    function GetData(a: Integer): AnsiChar;
-    procedure SetData(a: Integer; const Value: AnsiChar);
-    Procedure SetStrLength(aLen: Integer);
+    function GetData(a: integer): AnsiChar;
+    procedure SetData(a: integer; const Value: AnsiChar);
+    Procedure SetStrLength(aLen: integer);
   Public
     class operator Add(a, b: AnsiString): AnsiString;
     class operator Add(a: AnsiString; b: Byte): AnsiString;
@@ -72,7 +75,7 @@ Type
     class operator GreaterThanOrEqual(a, b: AnsiString): Boolean;
     class operator LessThan(a, b: AnsiString): Boolean;
     class operator LessThanOrEqual(a, b: AnsiString): Boolean;
-    Procedure Delete(Index: Integer; Count: Integer);
+    Procedure Delete(Index: integer; Count: integer);
     Procedure UnicodeAsAnsi(UString: String);
     // For std AnsiChars every second byte is a null
     // Bypasses Conversion Routines
@@ -84,30 +87,34 @@ Type
     // Returns '' if Chars above 255
     // Function DeCompressUnicode: UnicodeString;
     Function UnCompressedToUnicode: String;
-    Function ReadBytesFrmStrm(AStm: TStream; ABytes: Integer): Int64;
+    Function ReadBytesFrmStrm(AStm: TStream; ABytes: integer): Int64;
     Procedure ReadOneLineFrmStrm(AStm: TStream);
-    function WriteBytesToStrm(AStm: TStream; ABytes: Integer = 0;
-      AOffset: Integer = 0): Integer;
+    function WriteBytesToStrm(AStm: TStream; ABytes: integer = 0;
+      AOffset: integer = 0): integer;
     { Offest zero ref }
-    function WriteLineToStream(AStm: TStream): Integer;
-    Procedure CopyBytesFromMemory(ABuffer: Pointer; ACount: Integer);
-    Function CopyBytesToMemory(ABuffer: Pointer; ABytes: Integer = -1;
-      AOffset: Integer = 0): Integer;
+    function WriteLineToStream(AStm: TStream): integer;
+    Procedure CopyBytesFromMemory(ABuffer: Pointer; ACount: integer);
+    Function CopyBytesToMemory(ABuffer: Pointer; ABytes: integer = -1;
+      AOffset: integer = 0): integer;
     { Offest zero ref }
+    function UpperCase: AnsiString; // Makes a copy
+    function LowerCase: AnsiString;
     Procedure UniqueString;
     Function AsStringValues: String;
     // 123[0D](^M)5647
-    Function GetLength: Integer;
+    Function GetLength: integer;
     Function IsBlank: Boolean;
     // #2+#5+#13+' ' is blank
-    Function High: Integer;
-    Function Low: Integer;
+    Function High: integer;
+    Function Low: integer;
     Function AnsiLastChar: Pointer;
     // Returns a pointer to the last full character in the AnsiStringBase.
-    Property Length: Integer Read GetLength write SetStrLength;
+    Function OffsetPointer(AByteOffset: integer): Pointer;
+    // Returns a pointer to the offset char in the AnsiStringBase zero base.
+    Property Length: integer Read GetLength write SetStrLength;
     Property ASString: String read UnCompressedToUnicode
-      write CompressedUnicode;//Useful for seeing value in Debug
-    Property Data[a: Integer]: AnsiChar Read GetData Write SetData; Default;
+      write CompressedUnicode; // Useful for seeing value in Debug
+    Property Data[a: integer]: AnsiChar Read GetData Write SetData; Default;
   end;
 
   RawByteString = AnsiString;
@@ -117,24 +124,24 @@ Type
   private
     FTempAnsiString: AnsiString;
     FData: Pointer;
-    function GetData(a: Integer): AnsiChar;
-    procedure SetData(a: Integer; const Value: AnsiChar);
+    function GetData(a: integer): AnsiChar;
+    procedure SetData(a: integer; const Value: AnsiChar);
     function GetTempString: AnsiString;
     procedure SetTempString(const Value: AnsiString);
   Public
     class operator Add(a, b: PAnsiChar): PAnsiChar;
-    class operator Add(a: PAnsiChar; b: Integer): PAnsiChar;
-    class operator Add(a: Integer; b: PAnsiChar): PAnsiChar;
+    class operator Add(a: PAnsiChar; b: integer): PAnsiChar;
+    class operator Add(a: integer; b: PAnsiChar): PAnsiChar;
     class operator Subtract(a, b: PAnsiChar): Int64;
     class operator Subtract(a: PAnsiChar; b: Pointer): Int64;
     class operator Subtract(a: Pointer; b: PAnsiChar): Int64;
-    class operator Subtract(a: PAnsiChar; b: Integer): PAnsiChar;
+    class operator Subtract(a: PAnsiChar; b: integer): PAnsiChar;
     class operator Subtract(a: Int64; b: PAnsiChar): Int64;
     class operator Implicit(a: Pointer): PAnsiChar;
     class operator Implicit(a: PAnsiChar): AnsiString;
     class operator Implicit(a: PAnsiChar): String;
     class operator Implicit(a: AnsiString): PAnsiChar;
-    class operator Implicit(a: PAnsiChar): Pointer;
+    class operator Explicit(a: PAnsiChar): Pointer;
     class operator Explicit(a: Pointer): PAnsiChar;
     class operator Explicit(a: PAnsiChar): Int64;
     class operator Explicit(a: String): PAnsiChar;
@@ -154,87 +161,122 @@ Type
     class operator LessThan(a: PAnsiChar; b: Pointer): Boolean;
     // class operator LessThanOrEqual(a: TstPAnsiChar; b: TstPAnsiChar): Boolean;
     class operator Inc(a: PAnsiChar): PAnsiChar;
-    Function GetLength: Integer;
+    class operator Dec(a: PAnsiChar): PAnsiChar;
+    Function GetLength: integer;
     Function StrPas: String;
     Function AStrPas: AnsiString;
+    function StrUpper: PAnsiChar; // changes Current Value;
+    function StrLower: PAnsiChar;
     Function StrScan(Chr: Byte): PAnsiChar;
     { StrScan returns a PAnsiChar to the first occurrence of Chr in Str. If Chr
       does not occur in Str, StrScan returns NIL. The null terminator is
       considered to be part of the string. }
     Function SepStrg(ASep: AnsiString): String;
     Function FieldSep(SepVal: AnsiChar): String;
-    Function Copy(Index: Integer; ACount: Integer;
+    Function Copy(Index: integer; ACount: integer;
       ATerminateOnNull: Boolean = True): AnsiString;
-    Function WriteBytesToStrm(AStm: TStream; ABytes: Integer = -1): Integer;
+    Function WriteBytesToStrm(AStm: TStream; ABytes: integer = -1): integer;
     // Function SubPAnsiChar(AStart: Integer): PAnsiChar;
     Property TempAnsiString: AnsiString Read GetTempString Write SetTempString;
-    Property Length: Integer Read GetLength;
-    Property Data[a: Integer]: AnsiChar Read GetData Write SetData; Default;
+    Property Length: integer Read GetLength;
+    Property Data[a: integer]: AnsiChar Read GetData Write SetData; Default;
   end;
 
-function StrCodeInfo(const s: UnicodeString): StrCodeInfoRec; overload; inline;
-function StrCodeInfo(const s: RawByteString): StrCodeInfoRec; overload; inline;
+function StrUpper(S: PAnsiChar): PAnsiChar; overload;
+function UpperCase(const S: AnsiString): AnsiString; overload;
+function StrLower(S: PAnsiChar): PAnsiChar; overload;
+function LowerCase(const S: AnsiString): AnsiString; overload;
 
 Function StrScan(const Str: PAnsiChar; Chr: Byte): PAnsiChar; overload;
 Procedure UniqueString(Var AStg: AnsiString); overload;
-function ByteType(const s: AnsiString; Index: Integer): TMbcsByteType; overload;
-Function Pos(ASubStr, AStr: AnsiString): Integer; Overload;
+function ByteType(const S: AnsiString; Index: integer): TMbcsByteType; overload;
+Function Pos(ASubStr, AStr: AnsiString): integer; Overload;
+// Pos returns one based index for zero based and one based strings
+// Use Index of and Substring for consistent zero based values across
+
 function StrPos(const Str1, Str2: PAnsiChar): PAnsiChar; overload;
 // StrPos returns a pointer to the first occurrence of Str2 in Str1. If Str2 does not occur in Str1, StrPos returns nil (Delphi) or NULL (C++).
 // Function Low(AData: AnsiString): Integer; overload;
 // Function High(AData: AnsiString): Integer; overload;
 // Function Length(AData: AnsiString): Integer; overload;
-Function Copy(AStr: AnsiString; AOffset: Integer { First leeter =1 } = 1;
-  aLen: Integer = 2000): AnsiString; overload;
-// Function Copy(AStr:PAnsiChar; AOffset:Integer{First leeter =0} =0 ; ALen:integer=2000):AnsiString; overload;
+Function Copy(AStr: AnsiString; AFrom: integer { First letter =1 } = 1;
+  aLen: integer = 2000): AnsiString; overload;
+Function Copy(AStr: PAnsiChar; AOffset: integer= 0; {0 Ref Offset = 1 copy from second letter}
+  aLen: integer = 2000): AnsiString; overload;
+Function Copy(AStr: String; AFrom: integer { First letter =1 } = 1;
+  aLen: integer = 2000): String; overload;
+// Provided to overload System.Copy
+
 function StrCopy(Dest: PAnsiChar; const Source: PAnsiChar): PAnsiChar;
 function StrLCopy(Dest: PAnsiChar; const Source: PAnsiChar; MaxLen: Cardinal)
   : PAnsiChar; overload;
 function StrLCopy(Dest: Pointer; const Source: PAnsiChar; MaxLen: Cardinal)
   : PAnsiChar; overload;
-Procedure SetPosFirst;
+function StrComp(const Str1, Str2: PAnsiChar): integer; overload;
+function StrLen(const Str1: PAnsiChar): integer; overload;
+function StrCodeInfo(const s: UnicodeString): StrCodeInfoRec; overload; inline;
 
 const
   NullStrCodeInfo: StrCodeInfoRec = (CodePage: 0; ElementLength: 0; RefCount: 0;
     Length: 0);
-
 Var
   NullAnsiString: AnsiString; // Do not allocate to???????
-  NewGenPosFirst: Integer; // set in initialization by SetPosFirst
 
 implementation
 
-function ByteType(const s: AnsiString; Index: Integer): TMbcsByteType; overload;
+function ByteType(const S: AnsiString; Index: integer): TMbcsByteType; overload;
 
 Begin
   Result := mbSingleByte;
 End;
 
-Function Pos(ASubStr, AStr: AnsiString): Integer;
+Function Pos(ASubStr, AStr: AnsiString): integer;
+// Pos returns one based index for zero based and one based strings
+// Use Index of and Substring for consistent zero based values across
 Var
   a, b: String;
 begin
   a := ASubStr;
   b := AStr;
-  Result := PosEx(a, b) - NewGenPosFirst;
+  Result := PosEx(a, b); // - NewGenPosFirst;
 end;
 
 Procedure UniqueString(Var AStg: AnsiString);
 Var
-  OldCopy,NewCopy: AnsiString;
-  Len:Integer;
+  OldCopy, NewCopy: AnsiString;
+  Len: integer;
 begin
   OldCopy := AStg;
   NewCopy := '';
   Len := OldCopy.Length;
-  if Len>0 then
-     NewCopy.CopyBytesFromMemory(Pointer(OldCopy),Len);
-  AStg:=NewCopy;
+  if Len > 0 then
+    NewCopy.CopyBytesFromMemory(Pointer(OldCopy), Len);
+  AStg := NewCopy;
 end;
 
 Function StrScan(const Str: PAnsiChar; Chr: Byte): PAnsiChar;
 begin
   Result := Str.StrScan(Chr);
+end;
+
+function StrUpper(S: PAnsiChar): PAnsiChar;
+begin
+  Result := S.StrUpper;
+end;
+
+function UpperCase(const S: AnsiString): AnsiString;
+begin
+  Result := S.UpperCase;
+end;
+
+function StrLower(S: PAnsiChar): PAnsiChar;
+begin
+  Result := S.StrLower;
+end;
+
+function LowerCase(const S: AnsiString): AnsiString;
+begin
+  Result := S.LowerCase;
 end;
 
 function StrPos(const Str1, Str2: PAnsiChar): PAnsiChar; overload;
@@ -263,7 +305,7 @@ begin
       Inc(LStr2);
       while True do
       begin
-        if LStr2[0] = 0 then
+        if Byte(LStr2[0]) = 0 then
           Exit(MatchStart); // MarchStart is the result
         if (Byte(LStr1[0]) <> Byte(LStr2[0])) or (LStr1[0] = 0) then
           Break;
@@ -284,7 +326,7 @@ Type
   BfrPtr = ^Bfr;
 Var
   Src, Dest: BfrPtr;
-  i: Integer;
+  i: integer;
 begin
   if AMemLen > BufMax then
     raise Exception.Create('CopyMemory Length exceeeded ' + IntToStr(AMemLen));
@@ -332,26 +374,65 @@ begin
   Result[Len] := #0;
 end;
 
-Function Copy(AStr: AnsiString; AOffset: Integer { First leeter =1 };
-  aLen: Integer): AnsiString; overload;
+function StrLen(const Str1: PAnsiChar): integer; overload;
+var
+  Str: PAnsiChar;
+
+begin
+  Result := 0;
+  if Str1 = nil then
+    Exit;
+
+  Str := Str1;
+  while (Result < MaxLenPAnsiChar) and (Str[0] <> 0) do
+  begin
+    Inc(Result);
+    // Inc(Str);
+    Str := Str + 1;
+  end;
+end;
+
+function StrComp(const Str1, Str2: PAnsiChar): integer;
+var
+  P1, P2: ^Byte;
+begin
+  P1 := Pointer(Str1);
+  P2 := Pointer(Str2);
+  while True do
+  begin
+    if (P1^ <> P2^) or (P1^ = 0) then
+      Exit(P1^ - P2^);
+    Inc(P1);
+    Inc(P2);
+  end;
+end;
+
+Function Copy(AStr: AnsiString; AFrom: integer { First letter =1 };
+  aLen: integer): AnsiString; overload;
 Begin
-  if AOffset < 1 then
+  if AFrom < 1 then
+    raise Exception.Create('Bad use of AnsiCopy Offest=' + IntToStr(AFrom));
+  if (aLen + AFrom) > AStr.Length then
+    aLen := AStr.Length - AFrom + 1;
+  Result.CopyBytesFromMemory(@AStr.FData[AFrom - 1], aLen);
+End;
+
+Function Copy(AStr: String; AFrom: integer { First letter =1 } = 1;
+  aLen: integer = 2000): String; overload;
+Begin
+  // Provided to overload System.Copy
+  Result := System.Copy(AStr, AFrom, aLen);
+End;
+
+Function Copy(AStr: PAnsiChar; AOffset: integer; {0 Ref Offset = 1 copy from second letter}
+  aLen: integer): AnsiString; overload;
+Begin
+  if AOffset < 0 then
     raise Exception.Create('Bad use of AnsiCopy Offest=' + IntToStr(AOffset));
   if (aLen + AOffset) > AStr.Length then
     aLen := AStr.Length - AOffset;
-  Result.CopyBytesFromMemory(@AStr.FData[AOffset - 1], aLen);
+  Result.CopyBytesFromMemory(Pointer(Int64(AStr.FData) + AOffset), aLen);
 End;
-
-(*
-  Function Copy(AStr:PAnsiChar; AOffset:Integer{First leeter =1} =0 ; ALen:integer=2000):AnsiString; overload;
-  Begin
-  if AOffset<0 then
-  raise Exception.Create('Bad use of AnsiCopy Offest='+IntToStr(AOffset));
-  if (Alen+Aoffset)> AStr.Length then
-  Alen:= AStr.Length-AOffset;
-  Result.CopyBytesFromMemory(Pointer(Int64(Astr.FData)+AOffset),ALen);
-  End;
-*)
 
 { Function Low(AData: AnsiString): Integer;
   begin
@@ -373,7 +454,7 @@ End;
 
 class operator AnsiString.Add(a, b: AnsiString): AnsiString;
 Var
-  isrc, idest: Integer;
+  isrc, idest: integer;
 begin
   Result.Length := a.Length + b.Length;
   idest := 0;
@@ -391,7 +472,7 @@ end;
 
 class operator AnsiString.Add(a: AnsiString; b: Byte): AnsiString;
 Var
-  isrc, idest: Integer;
+  isrc, idest: integer;
 begin
   Result.Length := a.Length + 1;
   idest := 0;
@@ -411,7 +492,7 @@ end;
 
 class operator AnsiString.Add(a: AnsiString; b: String): AnsiString;
 Var
-  isrc, idest: Integer;
+  isrc, idest: integer;
 begin
   Result.Length := a.Length + b.Length;
   idest := 0;
@@ -429,7 +510,7 @@ end;
 
 class operator AnsiString.Add(a: String; b: AnsiString): AnsiString;
 Var
-  isrc, idest: Integer;
+  isrc, idest: integer;
 begin
   Result.Length := a.Length + b.Length;
   idest := 0;
@@ -478,7 +559,7 @@ end;
 function AnsiString.AnsiLastChar: Pointer;
 Var
   Nxt: ^Byte;
-  Len: Integer;
+  Len: integer;
 begin
   Len := Length;
   Nxt := @FData[0];
@@ -499,12 +580,12 @@ const
   a: set of #0 .. #255 = [' ' .. '~'];
   Ctrl: set of #0 .. #255 = [#1 .. #31];
 var
-  i: Integer;
+  i: integer;
   Sub: longint;
   rr: string;
   x: Char;
   GreaterThan127: Boolean;
-  DataLength: Integer;
+  DataLength: integer;
 
 begin
   try
@@ -553,7 +634,7 @@ procedure AnsiString.CompressedUnicode(const AUCode: UnicodeString);
 // Contains Ascii version of Unicode but '' if 2 byte characters found
 // Returns '' if Chars above 255
 var
-  Ri, Ui, Finished: Integer;
+  Ri, Ui, Finished: integer;
   CharVal: Word;
   R: StrCodeInfoRec;
 begin
@@ -582,14 +663,14 @@ begin
   end;
 end;
 
-procedure AnsiString.CopyBytesFromMemory(ABuffer: Pointer; ACount: Integer);
+procedure AnsiString.CopyBytesFromMemory(ABuffer: Pointer; ACount: integer);
 begin
   Length := ACount;
   CopyMemory(@FData[0], ABuffer, ACount);
 end;
 
 function AnsiString.CopyBytesToMemory(ABuffer: Pointer;
-  ABytes, AOffset: Integer): Integer;
+  ABytes, AOffset: integer): integer;
 { Offest zero ref }
 Var
   ToWrite: Int64;
@@ -610,9 +691,9 @@ begin
     End;
 end;
 
-procedure AnsiString.Delete(Index, Count: Integer);
+procedure AnsiString.Delete(Index, Count: integer);
 Var
-  i, j, NewLength: Integer;
+  i, j, NewLength: integer;
 
 begin
   if Index > Length - 1 then
@@ -638,13 +719,13 @@ end;
 
 class operator AnsiString.Equal(a, b: AnsiString): Boolean;
 Var
-  Finished, i: Integer;
+  Finished, i: integer;
 
 begin
   Finished := a.Length;
   Result := Finished = b.Length;
-  if Result then
-    i := 0;
+
+  i := 0;
   while Result and (i < Finished) do
   begin
     Result := a.FData[i] = b.FData[i];
@@ -657,7 +738,7 @@ end;
 // Result := a.DeCompressUnicode;
 // end;
 
-function AnsiString.GetData(a: Integer): AnsiChar;
+function AnsiString.GetData(a: integer): AnsiChar;
 begin
   Result := AnsiChar(Byte(0));
   if a < 0 then
@@ -669,16 +750,16 @@ begin
   end;
 end;
 
-function AnsiString.GetLength: Integer;
+function AnsiString.GetLength: integer;
 begin
   Result := System.Length(FData) - 1;
-  if Result<0 then
-    Result:=0;
+  if Result < 0 then
+    Result := 0;
 end;
 
 class operator AnsiString.GreaterThan(a, b: AnsiString): Boolean;
 Var
-  i, short: Integer;
+  i, short: integer;
   Eq: Boolean;
 begin
   Result := True;
@@ -705,7 +786,7 @@ begin
     Result := a > b;
 end;
 
-function AnsiString.High: Integer;
+function AnsiString.High: integer;
 begin
   High := Length - 1;
 end;
@@ -717,7 +798,7 @@ end;
 
 class operator AnsiString.Implicit(a: Char): AnsiString;
 Var
-  Val: Integer;
+  Val: integer;
 begin
   Val := Ord(a);
   if Val > 255 then
@@ -742,7 +823,7 @@ end;
 
 class operator AnsiString.Implicit(a: AnsiString): String;
 Var
-  i, hh: Integer;
+  i, hh: integer;
 begin
   hh := a.Length;
   SetLength(Result, hh);
@@ -759,7 +840,7 @@ end;
 
 function AnsiString.IsBlank: Boolean;
 var
-  i, Len: Integer;
+  i, Len: integer;
 begin
   Result := True;
   Len := Length;
@@ -786,9 +867,22 @@ begin
     Result := a < b;
 end;
 
-function AnsiString.Low: Integer;
+function AnsiString.Low: integer;
 begin
   Low := 0;
+end;
+
+function AnsiString.LowerCase: AnsiString;
+var
+  i, Len: integer;
+begin
+  Len := Length;
+  Result.Length := Len;
+  for i := 0 to Len - 1 do
+    if FData[i] in [Byte(Ord('A')) .. Byte(Ord('Z'))] then
+      Result.FData[i] := FData[i] + Byte(Ord('a') - Ord('A'))
+    else
+      Result.FData[i] := FData[i];
 end;
 
 class operator AnsiString.NotEqual(a, b: AnsiString): Boolean;
@@ -796,7 +890,15 @@ begin
   Result := not(a = b);
 end;
 
-Function AnsiString.ReadBytesFrmStrm(AStm: TStream; ABytes: Integer): Int64;
+function AnsiString.OffsetPointer(AByteOffset: integer): Pointer;
+begin
+  If AByteOffset >= Length then
+    Result := nil
+  else
+    Result := @FData[AByteOffset];
+end;
+
+Function AnsiString.ReadBytesFrmStrm(AStm: TStream; ABytes: integer): Int64;
 begin
   Result := 0;
   Length := 0;
@@ -812,7 +914,7 @@ end;
 procedure AnsiString.ReadOneLineFrmStrm(AStm: TStream);
 var
   CurPos, EndPos: Int64;
-  i, EndSZ: Integer;
+  i, EndSZ: integer;
   Nxt: Byte;
 begin
   Length := 0;
@@ -850,7 +952,7 @@ end;
 
 function AnsiString.RecoverFullUnicode: String;
 var
-  MemLen, StrLen: Integer;
+  MemLen, StrLen: integer;
   Nxt, Dest: Pointer;
 begin
   MemLen := Length;
@@ -864,13 +966,13 @@ begin
   CopyMemory(Dest, Nxt, MemLen);
 end;
 
-procedure AnsiString.SetData(a: Integer; const Value: AnsiChar);
+procedure AnsiString.SetData(a: integer; const Value: AnsiChar);
 begin
   if a < Length then
     FData[a] := Byte(Value);
 end;
 
-procedure AnsiString.SetStrLength(aLen: Integer);
+procedure AnsiString.SetStrLength(aLen: integer);
 begin
   if aLen < 1 then
     System.SetLength(FData, 0)
@@ -883,36 +985,40 @@ end;
 
 class operator AnsiString.Subtract(a, b: AnsiString): AnsiString;
 Var
-  i, DLen: Integer;
+  i, DLen: integer;
 begin
   i := Pos(b, a);
-  if i < 0 then
+  if i < 1 then
     Result := a
   Else
   Begin
     DLen := b.Length;
     Result := a;
     Result.UniqueString;
-    Result.Delete(i, DLen);
+    Result.Delete(i - 1, DLen);
   End;
 end;
 
 function AnsiString.UnCompressedToUnicode: String;
 Var
-  i, hh: Integer;
+  i, hh: integer;
 begin
+  Result := '';
   hh := Length;
-  SetLength(Result, hh);
-  Dec(hh);
-  for i := 0 to hh do
-    Result[i] := Char(FData[i]);
+  if Length > 0 then
+  begin
+    SetLength(Result, hh);
+    Dec(hh);
+    for i := 0 to hh do
+      Result[i] := Char(FData[i]);
+  end;
 end;
 
 procedure AnsiString.UnicodeAsAnsi(UString: String);
 // For std AnsiChars every second byte is a null
 // Bypasses Conversion Routines
 var
-  MemLen: Integer;
+  MemLen: integer;
   Nxt, Dest: Pointer;
 begin
   MemLen := 2 * UString.Length;
@@ -927,14 +1033,27 @@ end;
 
 procedure AnsiString.UniqueString;
 var
-  Len: Integer;
+  Len: integer;
 begin
   Len := Length;
   Length := Len;
 end;
 
-function AnsiString.WriteBytesToStrm(AStm: TStream; ABytes: Integer;
-  AOffset: Integer): Integer;
+function AnsiString.UpperCase: AnsiString;
+var
+  i, Len: integer;
+begin
+  Len := Length;
+  Result.Length := Len;
+  for i := 0 to Len - 1 do
+    if FData[i] in [Byte(Ord('a')) .. Byte(Ord('z'))] then
+      Result.FData[i] := FData[i] - Byte(Ord('a') - Ord('A'))
+    else
+      Result.FData[i] := FData[i];
+end;
+
+function AnsiString.WriteBytesToStrm(AStm: TStream; ABytes: integer;
+  AOffset: integer): integer;
 { Offest zero ref }
 Var
   ToWrite: Int64;
@@ -953,15 +1072,15 @@ begin
   End;
 end;
 
-function AnsiString.WriteLineToStream(AStm: TStream): Integer;
+function AnsiString.WriteLineToStream(AStm: TStream): integer;
 var
-  s: AnsiString;
+  S: AnsiString;
 begin
   if FData[Length] in [13, 10, 138, 141] then
-    s := Self
+    S := self
   else
-    s := Self + #10 + #13;
-  Result := s.WriteBytesToStrm(AStm);
+    S := self + #10 + #13;
+  Result := S.WriteBytesToStrm(AStm);
 end;
 
 { AnsiChar }
@@ -984,6 +1103,21 @@ end;
 class operator AnsiChar.Equal(a: AnsiChar; b: Byte): Boolean;
 begin
   Result := Byte(a) = Byte(b);
+end;
+
+class operator AnsiChar.Equal(a: Char; b: AnsiChar): Boolean;
+begin
+  Result := Byte(Ord(a)) = Byte(b);
+end;
+
+class operator AnsiChar.Equal(a: AnsiChar; b: Char): Boolean;
+begin
+  Result := Byte(a) = Byte(Ord(b));
+end;
+
+function AnsiChar.GetLength: integer;
+begin
+  Result := 1;
 end;
 
 class operator AnsiChar.Implicit(a: AnsiChar): Pointer;
@@ -1018,8 +1152,13 @@ begin
 end;
 
 class operator AnsiChar.Implicit(a: Char): AnsiChar;
+Var
+  Rslt: Byte;
 begin
-  Result.FData := Byte(Ord(a));
+  Rslt := Byte(Ord(a));
+  // if Rslt>127 then
+  // Dec(Rslt,128);
+  Result.FData := Rslt;
 end;
 
 class operator AnsiChar.NotEqual(a, b: AnsiChar): Boolean;
@@ -1042,13 +1181,13 @@ begin
   end;
 end;
 
-class operator PAnsiChar.Add(a: PAnsiChar; b: Integer): PAnsiChar;
+class operator PAnsiChar.Add(a: PAnsiChar; b: integer): PAnsiChar;
 begin
   Result.FTempAnsiString.FData := a.FTempAnsiString.FData; // inc usage count
   Result.FData := Pointer(Int64(a.FData) + b);
 end;
 
-class operator PAnsiChar.Add(a: Integer; b: PAnsiChar): PAnsiChar;
+class operator PAnsiChar.Add(a: integer; b: PAnsiChar): PAnsiChar;
 begin
   Result.FTempAnsiString.FData := b.FTempAnsiString.FData; // inc usage count
   Result.FData := Pointer(Int64(b.FData) + a);
@@ -1056,7 +1195,7 @@ end;
 
 function PAnsiChar.AStrPas: AnsiString;
 Var
-  i, Len: Integer;
+  i, Len: integer;
 begin
   Len := Length;
   Result.Length := Len;
@@ -1066,12 +1205,12 @@ begin
       Result.FData[i] := TISBytesArray(FData)[i];
 end;
 
-function PAnsiChar.Copy(Index, ACount: Integer;
+function PAnsiChar.Copy(Index, ACount: integer;
   ATerminateOnNull: Boolean = True): AnsiString;
 Var
-  dn: Integer;
+  dn: integer;
   Nxt: ^Byte;
-  Count: Integer;
+  Count: integer;
 
 begin
   if ACount < 0 then
@@ -1099,6 +1238,12 @@ begin
   End;
 end;
 
+class operator PAnsiChar.Dec(a: PAnsiChar): PAnsiChar;
+begin
+  Result.FData := Pointer(Int64(a.FData) - 1);
+  Result.FTempAnsiString := a.FTempAnsiString;
+end;
+
 class operator PAnsiChar.Equal(a, b: PAnsiChar): Boolean;
 Var
   NxtA, NxtB: ^Byte;
@@ -1107,21 +1252,21 @@ begin
   NxtA := Pointer(a.FData);
   NxtB := Pointer(b.FData);
   Result := NxtA = NxtB;
-  if (NxtA = nil) or (NxtB = nil) then
+  { if (NxtA = nil) or (NxtB = nil) then
     Exit;
 
-  if Not Result then
-  begin
+    if Not Result then
+    begin
     Result := NxtA^ = NxtB^;
     while Result And (NxtA^ <> 0) And (NxtB^ <> 0) do
     Begin
-      Result := NxtA^ = NxtB^;
-      Inc(NxtA);
-      Inc(NxtB);
-    end;
-  end;
-  if Result then
     Result := NxtA^ = NxtB^;
+    Inc(NxtA);
+    Inc(NxtB);
+    end;
+    end;
+    if Result then
+    Result := NxtA^ = NxtB^; }
 end;
 
 class operator PAnsiChar.Explicit(a: PAnsiChar): Int64;
@@ -1145,6 +1290,11 @@ begin
   Result.FData := Result.FTempAnsiString.FData;
 end;
 
+class operator PAnsiChar.Explicit(a: PAnsiChar): Pointer;
+begin
+  Result := a.FData;
+end;
+
 class operator PAnsiChar.Explicit(a: Pointer): PAnsiChar;
 begin
   Result.FData := a;
@@ -1153,7 +1303,7 @@ end;
 function PAnsiChar.FieldSep(SepVal: AnsiChar): String;
 var
   CharPointer: PAnsiChar;
-  j: Integer;
+  j: integer;
   ARslt: AnsiString;
 begin
   Result := '';
@@ -1165,7 +1315,7 @@ begin
     Exit;
 
   while TISBytesArray(FData)[0] = SepVal do
-    Inc(Self);
+    Inc(self);
 
   CharPointer := StrScan(SepVal);
 
@@ -1185,7 +1335,7 @@ begin
   end;
 end;
 
-function PAnsiChar.GetData(a: Integer): AnsiChar;
+function PAnsiChar.GetData(a: integer): AnsiChar;
 begin
   if FData = Nil then
     Result.FData := 0
@@ -1196,7 +1346,7 @@ begin
   end;
 end;
 
-function PAnsiChar.GetLength: Integer;
+function PAnsiChar.GetLength: integer;
 var
   // StartPtr: ^TISBytesArray;
   isrc: longint;
@@ -1228,34 +1378,38 @@ end;
 function PAnsiChar.GetTempString: AnsiString;
 begin
   if FTempAnsiString.Length < 1 then
-    FTempAnsiString := Self;
+    FTempAnsiString := self;
 
   Result := FTempAnsiString;
 end;
 
 class operator PAnsiChar.GreaterThan(a, b: PAnsiChar): Boolean;
-Var
-  NxtA, NxtB: ^Byte;
 begin
+  Result := Int64(a.FData) > Int64(b.FData);
+end;
+{ Var
+  NxtA, NxtB: ^Byte;
+  begin
   Result := True;
   NxtA := Pointer(a.FData);
   NxtB := Pointer(b.FData);
   if (NxtB = nil) or (NxtB^ = 0) then
   begin
-    Result := (NxtA <> nil) and (NxtA^ > 0);
-    Exit;
+  Result := (NxtA <> nil) and (NxtA^ > 0);
+  Exit;
   end;
   while Result and (NxtA^ <> 0) And (NxtB^ <> 0) do
   begin
-    Result := NxtA^ >= NxtB^;
-    if NxtA^ > NxtB^ then
-      Exit;
-    Inc(NxtA);
-    Inc(NxtB);
+  Result := NxtA^ >= NxtB^;
+  if NxtA^ > NxtB^ then
+  Exit;
+  Inc(NxtA);
+  Inc(NxtB);
   end;
   if Result and (NxtA^ = 0) then
-    Result := false;
-end;
+  Result := false;
+  end;
+}
 
 class operator PAnsiChar.GreaterThan(a: Pointer; b: PAnsiChar): Boolean;
 begin
@@ -1267,21 +1421,17 @@ begin
   Result := Int64(a.FData) > Int64(b);
 end;
 
-class operator PAnsiChar.Implicit(a: PAnsiChar): Pointer;
-begin
-  Result := a.FData;
-end;
-
 class operator PAnsiChar.Inc(a: PAnsiChar): PAnsiChar;
 begin
   Result.FData := Pointer(Int64(a.FData) + 1);
+  Result.FTempAnsiString := a.FTempAnsiString;
 end;
 
 class operator PAnsiChar.LessThan(a, b: PAnsiChar): Boolean;
 Var
   NxtA, NxtB: ^Byte;
 begin
-  Result := True;
+  Result := False;
   NxtA := Pointer(a.FData);
   NxtB := Pointer(b.FData);
   if (NxtA = nil) or (NxtA^ = 0) then
@@ -1289,26 +1439,32 @@ begin
     Result := (NxtB <> nil) and (NxtB^ > 0);
     Exit;
   end;
-  while Result and (NxtA^ <> 0) And (NxtB^ <> 0) do
-  begin
+
+  if (NxtB <> nil) and (NxtB^ > 0) then
+    Result := Int64(NxtA) < Int64(NxtB);
+
+  {
+
+    while Result and (NxtA^ <> 0) And (NxtB^ <> 0) do
+    begin
     Result := NxtA^ <= NxtB^;
     if NxtA^ < NxtB^ then
-      Exit;
+    Exit;
     Inc(NxtA);
     Inc(NxtB);
-  end;
-  if Result and (NxtB^ = 0) then
-    Result := false;
+    end;
+    if Result and (NxtB^ = 0) then
+    Result := false; }
 end;
 
 class operator PAnsiChar.LessThan(a: Pointer; b: PAnsiChar): Boolean;
 begin
-  Result := not(a > b);
+  Result := not(Int64(a) = Int64(b.FData)) and not(Int64(a) > Int64(b.FData));
 end;
 
 class operator PAnsiChar.LessThan(a: PAnsiChar; b: Pointer): Boolean;
 begin
-  Result := not(a > b);
+  Result := not(Int64(a.FData) = Int64(b)) and not(Int64(a.FData) > Int64(b));
 end;
 
 class operator PAnsiChar.NotEqual(a, b: PAnsiChar): Boolean;
@@ -1318,12 +1474,12 @@ end;
 
 class operator PAnsiChar.NotEqual(a: Pointer; b: PAnsiChar): Boolean;
 begin
-  Result := a <> b.FData;
+  Result := a <> Pointer(b);
 end;
 
 class operator PAnsiChar.NotEqual(a: PAnsiChar; b: Pointer): Boolean;
 begin
-  Result := a.FData <> b;
+  Result := Pointer(a) <> b;
 end;
 
 class operator PAnsiChar.Implicit(a: PAnsiChar): String;
@@ -1354,7 +1510,7 @@ end;
 
 function PAnsiChar.SepStrg(ASep: AnsiString): String;
 Var
-  Len: Integer;
+  Len: integer;
   SepAChar: PAnsiChar;
   CharPointer: PAnsiChar;
   Dta, Dtb: Pointer;
@@ -1370,7 +1526,7 @@ begin
 
   SepAChar := ASep;
 
-  CharPointer := StrPos(Self, SepAChar);
+  CharPointer := StrPos(self, SepAChar);
 
   if CharPointer.FData = nil then
   Begin
@@ -1388,7 +1544,7 @@ begin
   end;
 end;
 
-procedure PAnsiChar.SetData(a: Integer; const Value: AnsiChar);
+procedure PAnsiChar.SetData(a: integer; const Value: AnsiChar);
 begin
   if FData = nil then
     Exit;
@@ -1407,9 +1563,23 @@ begin
   FData := FTempAnsiString.FData;
 end;
 
+function PAnsiChar.StrLower: PAnsiChar;
+Var
+  Nxt: ^Byte;
+begin
+  Result := self;
+  Nxt := FData;
+  while Nxt^ <> 0 do
+  begin
+    if Nxt^ in [Byte(Ord('A')) .. Byte(Ord('Z'))] then
+      Inc(Nxt^, 32);
+    Inc(Nxt);
+  end;
+end;
+
 function PAnsiChar.StrPas: String;
 Var
-  i, Len: Integer;
+  i, Len: integer;
 begin
   Len := Length;
   SetLength(Result, Len);
@@ -1436,7 +1606,7 @@ begin
   Result.FTempAnsiString := FTempAnsiString; // to inc mem counter
   isrc := 0;
   Result.FData := FData;
-  Found := false;
+  Found := False;
   while (TISBytesArray(Result.FData)[0] <> 0) and (isrc < MaxLenPAnsiChar) and
     Not Found do
   Begin
@@ -1449,6 +1619,20 @@ begin
   begin
     Result.FData := nil;
     Result.FTempAnsiString := '';
+  end;
+end;
+
+function PAnsiChar.StrUpper: PAnsiChar;
+Var
+  Nxt: ^Byte;
+begin
+  Result := self;
+  Nxt := FData;
+  while Nxt^ <> 0 do
+  begin
+    if Nxt^ in [Byte(Ord('a')) .. Byte(Ord('z'))] then
+      Dec(Nxt^, 32);
+    Inc(Nxt);
   end;
 end;
 
@@ -1485,7 +1669,7 @@ begin
     Result := 0;
 end;
 
-class operator PAnsiChar.Subtract(a: PAnsiChar; b: Integer): PAnsiChar;
+class operator PAnsiChar.Subtract(a: PAnsiChar; b: integer): PAnsiChar;
 Var
   Aint: Int64;
 begin
@@ -1503,9 +1687,9 @@ begin
   End;
 end;
 
-function PAnsiChar.WriteBytesToStrm(AStm: TStream; ABytes: Integer): Integer;
+function PAnsiChar.WriteBytesToStrm(AStm: TStream; ABytes: integer): integer;
 Var
-  Len: Integer;
+  Len: integer;
 begin
   if ABytes < 0 then
     Len := Length
@@ -1515,27 +1699,6 @@ begin
     Result := AStm.Write(FData, Len)
   else
     Result := 0;
-end;
-
-Procedure SetPosFirst;
-var
-  a, b: string;
-begin
-  a := 'abc';
-  b := 'abcdfg';
-  NewGenPosFirst := PosEx(a, b);
-end;
-
-
-function StrCodeInfo(const s: RawByteString): StrCodeInfoRec; overload; inline;
-var
-  AtS: NativeInt;
-begin
-  AtS := NativeInt(s);
-  if AtS = 0 then
-    Result := NullStrCodeInfo
-  else
-    Result := PStrCodeInfoRec(AtS - 12)^
 end;
 
 function StrCodeInfo(const s: UnicodeString): StrCodeInfoRec; overload; inline;
@@ -1549,9 +1712,5 @@ begin
     Result := PStrCodeInfoRec(AtS - 12)^
 end;
 
-
-initialization
-
-SetPosFirst;
 
 end.
