@@ -45,10 +45,25 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+*.tmp
 *.identcache
 *.stat
 *.~*
 *.exe
 *.res
 *.dcu
-*.tmp
+*.o
+*.vsr
+*.dex
+*.local
+*.so
+*.apk
+*\app_Process
+*.png
+*\gdbserver
+*\linker
+*.xml
+*.dsk
+*.deployproj
+*~*
+
